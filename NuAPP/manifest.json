@@ -1,0 +1,9 @@
+{
+  "name": "Plan&Recuerdo",
+  "short_name": "Plan&Recuerdo",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0f0f10",
+  "theme_color": "#111111",
+  "icons": []
+}

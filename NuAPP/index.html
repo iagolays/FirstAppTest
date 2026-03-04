@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#111111" />
+  <title>Plan&Recuerdo</title>
+
+  <link rel="manifest" href="./manifest.json">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">♥</div>
+      <div>
+        <div class="title">Plan&Recuerdo</div>
+        <div class="subtitle">Pendientes · Hechos · Rutas</div>
+      </div>
+    </div>
+
+    <button id="btnExport" class="btn btn-ghost" title="Exportar tus datos">Exportar</button>
+    <label class="btn btn-ghost" title="Importar datos">
+      Importar
+      <input id="fileImport" type="file" accept="application/json" hidden />
+    </label>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="pending">Pendientes</button>
+    <button class="tab" data-tab="done">Hechos</button>
+    <button class="tab" data-tab="routes">Rutas</button>
+  </nav>
+
+  <main class="container">
+    <!-- PENDIENTES -->
+    <section id="tab-pending" class="panel">
+      <div class="panelHead">
+        <h2>Pendientes</h2>
+        <button id="btnAddPlan" class="btn">+ Nuevo plan</button>
+      </div>
+
+      <div id="pendingList" class="list"></div>
+      <p id="pendingEmpty" class="empty">Aún no hay planes pendientes. Crea uno arriba 👆</p>
+    </section>
+
+    <!-- HECHOS -->
+    <section id="tab-done" class="panel hidden">
+      <div class="panelHead">
+        <h2>Hechos (diario)</h2>
+      </div>
+
+      <div id="doneList" class="list"></div>
+      <p id="doneEmpty" class="empty">Todavía no habéis guardado recuerdos. Marca un plan como “Hecho” ✨</p>
+    </section>
+
+    <!-- RUTAS -->
+    <section id="tab-routes" class="panel hidden">
+      <div class="panelHead">
+        <h2>Rutas</h2>
+        <button id="btnAddRoute" class="btn">+ Nueva ruta</button>
+      </div>
+
+      <div id="routeList" class="list"></div>
+      <p id="routesEmpty" class="empty">No hay rutas guardadas. Crea una para abrirla en Google Maps 🗺️</p>
+    </section>
+  </main>
+
+  <!-- MODAL: NUEVO PLAN -->
+  <dialog id="planModal" class="modal">
+    <form id="planForm" method="dialog" class="modalCard">
+      <div class="modalHead">
+        <h3>Nuevo plan</h3>
+        <button class="btn btn-ghost" value="cancel" type="button" id="closePlan">Cerrar</button>
+      </div>
+
+      <div class="grid">
+        <label>
+          Título*
+          <input name="title" required placeholder="Ej: Mirador + cena" />
+        </label>
+
+        <label>
+          Fecha (opcional)
+          <input name="date" type="date" />
+        </label>
+
+        <label>
+          Hora (opcional)
+          <input name="time" type="time" />
+        </label>
+
+        <label>
+          Lugar (opcional)
+          <input name="place" placeholder="Ej: Monte Pedroso" />
+        </label>
+
+        <label>
+          Tags (separados por comas)
+          <input name="tags" placeholder="ej: paseo, comida, finde" />
+        </label>
+
+        <label class="full">
+          Notas
+          <textarea name="notes" rows="3" placeholder="Qué queremos hacer, llevar, reservar..."></textarea>
+        </label>
+      </div>
+
+      <div class="modalActions">
+        <button class="btn btn-ghost" type="button" id="cancelPlan">Cancelar</button>
+        <button class="btn" type="submit">Guardar plan</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- MODAL: PASAR A HECHOS -->
+  <dialog id="doneModal" class="modal">
+    <form id="doneForm" method="dialog" class="modalCard">
+      <div class="modalHead">
+        <h3>Guardar recuerdo</h3>
+        <button class="btn btn-ghost" type="button" id="closeDone">Cerrar</button>
+      </div>
+
+      <input type="hidden" name="planId" />
+
+      <div class="grid">
+        <label class="full">
+          Resumen*
+          <textarea name="summary" rows="3" required placeholder="Ej: Nos encantó el sitio, vimos el atardecer..."></textarea>
+        </label>
+
+        <label>
+          Valoración (1–5)
+          <input name="rating" type="number" min="1" max="5" value="5" />
+        </label>
+
+        <label>
+          Gasto (€) (opcional)
+          <input name="cost" type="number" min="0" step="0.01" placeholder="Ej: 28.50" />
+        </label>
+
+        <label class="full">
+          Momentos (uno por línea)
+          <textarea name="moments" rows="4" placeholder="Ej:
+- El postre fue brutal
+- Caminata nocturna
+- Foto en el mirador"></textarea>
+        </label>
+      </div>
+
+      <div class="modalActions">
+        <button class="btn btn-ghost" type="button" id="cancelDone">Cancelar</button>
+        <button class="btn" type="submit">Guardar recuerdo</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- MODAL: NUEVA RUTA -->
+  <dialog id="routeModal" class="modal">
+    <form id="routeForm" method="dialog" class="modalCard">
+      <div class="modalHead">
+        <h3>Nueva ruta</h3>
+        <button class="btn btn-ghost" type="button" id="closeRoute">Cerrar</button>
+      </div>
+
+      <div class="grid">
+        <label class="full">
+          Nombre*
+          <input name="name" required placeholder="Ej: Ruta miradores" />
+        </label>
+
+        <label class="full">
+          Origen*
+          <input name="origin" required placeholder="Ej: Santiago de Compostela" />
+        </label>
+
+        <label class="full">
+          Paradas (una por línea, opcional)
+          <textarea name="stops" rows="4" placeholder="Ej:
+Mirador do Pedroso
+Catedral de Santiago
+Alameda"></textarea>
+        </label>
+
+        <label class="full">
+          Destino*
+          <input name="destination" required placeholder="Ej: Casa" />
+        </label>
+
+        <label class="full">
+          Notas
+          <textarea name="notes" rows="3" placeholder="Horarios, cosas que ver, tiempo estimado..."></textarea>
+        </label>
+      </div>
+
+      <div class="modalActions">
+        <button class="btn btn-ghost" type="button" id="cancelRoute">Cancelar</button>
+        <button class="btn" type="submit">Guardar ruta</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="./app.js"></script>
+</body>
+</html>
